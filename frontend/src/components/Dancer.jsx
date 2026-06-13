@@ -19,48 +19,53 @@ function DancerModel({ danceStyle, speed = 1, color = '#00ff88' }) {
 
   useEffect(() => {
     if (!fbx) return
-    
+
     const box = new THREE.Box3().setFromObject(fbx)
     const size = box.getSize(new THREE.Vector3())
     const center = box.getCenter(new THREE.Vector3())
     const maxDim = Math.max(size.x, size.y, size.z)
     const desiredHeight = 4
     const scale = desiredHeight / maxDim
-    
+
     fbx.scale.setScalar(scale)
     fbx.position.set(
       -center.x * scale,
       -box.min.y * scale - desiredHeight * 0.5,
       -center.z * scale
     )
-    
+
     fbx.traverse((child) => {
       if (child.isMesh) {
-        if (Array.isArray(child.material)) {
-          child.material.forEach(m => {
-            m.color.set(color)
-            m.emissive.set(color)
-            m.emissiveIntensity = 0.2
-          })
-        } else {
-          child.material.color.set(color)
-          child.material.emissive.set(color)
-          child.material.emissiveIntensity = 0.2
-        }
+        const mats = Array.isArray(child.material)
+          ? child.material
+          : [child.material]
+        mats.forEach(m => {
+          m.color.set(color)
+          m.emissive.set(color)
+          m.emissiveIntensity = 0.2
+        })
       }
     })
   }, [fbx, color])
 
   useEffect(() => {
-    if (names.length > 0) {
-      Object.values(actions).forEach(a => a?.stop())
+    if (!actions || names.length === 0) return
+
+    Object.values(actions).forEach(a => a?.stop())
+
+    const timer = setTimeout(() => {
       const action = actions[names[0]]
       if (action) {
-        action.reset().play()
+        action.reset()
+        action.loop = THREE.LoopRepeat
+        action.clampWhenFinished = false
         action.timeScale = speed
+        action.play()
       }
-    }
+    }, 100)
+
     return () => {
+      clearTimeout(timer)
       Object.values(actions).forEach(a => a?.stop())
     }
   }, [actions, names, speed, danceStyle])
@@ -72,10 +77,10 @@ function DancerModel({ danceStyle, speed = 1, color = '#00ff88' }) {
   )
 }
 
-export default function Dancer({ 
-  danceStyle = 'hip-hop', 
-  speed = 1, 
-  color = '#00ff88' 
+export default function Dancer({
+  danceStyle = 'hip-hop',
+  speed = 1,
+  color = '#00ff88'
 }) {
   return (
     <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>

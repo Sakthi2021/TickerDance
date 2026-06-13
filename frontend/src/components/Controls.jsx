@@ -4,6 +4,15 @@ const US_STABLE = ['Apple', 'Microsoft', 'Google', 'Amazon', 'Netflix']
 const HIGH_VOLATILITY = ['Tesla', 'Nvidia', 'GameStop', 'AMC', 'Coinbase', 'Rivian', 'Palantir']
 const DANCE_STYLES = ['hip-hop', 'ballet', 'classical', 'robot', 'breakdance']
 
+const C = {
+  cardBg: '#111118',
+  border: '#1e1e2e',
+  accent: '#00ff88',
+  subText: '#666',
+  inputBg: '#0a0a0f',
+  inputText: '#ccc'
+}
+
 export default function Controls({
   company,
   setCompany,
@@ -17,10 +26,16 @@ export default function Controls({
   isLoading
 }) {
   return (
-    <div style={{ background: '#111118', border: '1px solid #1e1e2e', borderRadius: 12, padding: 24 }}>
+    <div style={{
+      background: C.cardBg,
+      border: `1px solid ${C.border}`,
+      borderLeft: '3px solid #00ff88',
+      borderRadius: 12,
+      padding: 24
+    }}>
       <form onSubmit={onSubmit}>
         <p style={{
-          color: '#00ff88',
+          color: C.accent,
           fontFamily: "'Orbitron', monospace",
           fontSize: 11,
           letterSpacing: 4,
@@ -28,31 +43,32 @@ export default function Controls({
           textTransform: 'uppercase'
         }}>CONFIGURE</p>
 
+        {/* Stock Dropdown */}
         <div style={{ marginBottom: 16 }}>
           <label style={{
             display: 'block',
             marginBottom: 8,
-            color: '#666',
+            color: C.subText,
             fontSize: 11,
             letterSpacing: 2,
             textTransform: 'uppercase'
-          }}>Stock</label>
+          }}>STOCK</label>
           <select
             value={company}
             onChange={(e) => setCompany(e.target.value)}
             style={{
               width: '100%',
               padding: '10px 12px',
-              background: '#0a0a0f',
-              border: '1px solid #1e1e2e',
+              background: C.inputBg,
+              border: `1px solid ${C.border}`,
               borderRadius: 8,
-              color: '#ccc',
+              color: C.inputText,
               fontFamily: 'inherit',
               fontSize: 14,
               outline: 'none'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#00ff88'}
-            onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
+            onFocus={(e) => e.target.style.borderColor = C.accent}
+            onBlur={(e) => e.target.style.borderColor = C.border}
           >
             <optgroup label="Stable — Low BPM">
               {STABLE_STOCKS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -69,15 +85,16 @@ export default function Controls({
           </select>
         </div>
 
-        <div style={{ width: '100%', marginBottom: '12px' }}>
+        {/* Start Date */}
+        <div style={{ width: '100%', marginBottom: 12 }}>
           <label style={{
             display: 'block',
-            marginBottom: '6px',
-            color: '#666',
-            fontSize: '10px',
-            letterSpacing: '2px',
+            marginBottom: 6,
+            color: C.subText,
+            fontSize: 10,
+            letterSpacing: 2,
             textTransform: 'uppercase'
-          }}>Start Date</label>
+          }}>START DATE</label>
           <input
             type="date"
             value={startDate}
@@ -86,28 +103,29 @@ export default function Controls({
               width: '100%',
               boxSizing: 'border-box',
               padding: '10px 12px',
-              background: '#0a0a0f',
-              border: '1px solid #1e1e2e',
-              borderRadius: '6px',
-              color: '#ccc',
+              background: C.inputBg,
+              border: `1px solid ${C.border}`,
+              borderRadius: 6,
+              color: C.inputText,
               fontFamily: 'inherit',
-              fontSize: '12px',
+              fontSize: 12,
               outline: 'none'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#00ff88'}
-            onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
+            onFocus={(e) => e.target.style.borderColor = C.accent}
+            onBlur={(e) => e.target.style.borderColor = C.border}
           />
         </div>
 
-        <div style={{ width: '100%', marginBottom: '16px' }}>
+        {/* End Date */}
+        <div style={{ width: '100%', marginBottom: 16 }}>
           <label style={{
             display: 'block',
-            marginBottom: '6px',
-            color: '#666',
-            fontSize: '10px',
-            letterSpacing: '2px',
+            marginBottom: 6,
+            color: C.subText,
+            fontSize: 10,
+            letterSpacing: 2,
             textTransform: 'uppercase'
-          }}>End Date</label>
+          }}>END DATE</label>
           <input
             type="date"
             value={endDate}
@@ -116,32 +134,33 @@ export default function Controls({
               width: '100%',
               boxSizing: 'border-box',
               padding: '10px 12px',
-              background: '#0a0a0f',
-              border: '1px solid #1e1e2e',
-              borderRadius: '6px',
-              color: '#ccc',
+              background: C.inputBg,
+              border: `1px solid ${C.border}`,
+              borderRadius: 6,
+              color: C.inputText,
               fontFamily: 'inherit',
-              fontSize: '12px',
+              fontSize: 12,
               outline: 'none'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#00ff88'}
-            onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
+            onFocus={(e) => e.target.style.borderColor = C.accent}
+            onBlur={(e) => e.target.style.borderColor = C.border}
           />
         </div>
 
+        {/* Dance Style */}
         <div style={{ marginBottom: 16 }}>
           <label style={{
             display: 'block',
             marginBottom: 8,
-            color: '#666',
+            color: C.subText,
             fontSize: 11,
             letterSpacing: 2,
             textTransform: 'uppercase'
-          }}>Dance Style</label>
+          }}>DANCE STYLE</label>
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '8px',
+            gap: 8,
             width: '100%'
           }}>
             {DANCE_STYLES.map(style => (
@@ -152,10 +171,12 @@ export default function Controls({
                 style={{
                   width: '100%',
                   padding: '8px 4px',
-                  background: '#0a0a0f',
-                  border: danceStyle === style ? '1px solid #00ff88' : '1px solid #1e1e2e',
+                  background: C.inputBg,
+                  border: danceStyle === style
+                    ? `1px solid ${C.accent}`
+                    : `1px solid ${C.border}`,
                   borderRadius: 6,
-                  color: danceStyle === style ? '#00ff88' : '#ccc',
+                  color: danceStyle === style ? C.accent : C.inputText,
                   fontFamily: "'Orbitron', monospace",
                   fontSize: 10,
                   letterSpacing: 2,
@@ -170,13 +191,14 @@ export default function Controls({
           </div>
         </div>
 
+        {/* Generate Button */}
         <button
           type="submit"
           disabled={isLoading}
           style={{
             width: '100%',
             padding: 14,
-            background: '#00ff88',
+            background: C.accent,
             color: '#000',
             border: 'none',
             borderRadius: 6,
@@ -186,9 +208,12 @@ export default function Controls({
             textTransform: 'uppercase',
             cursor: isLoading ? 'not-allowed' : 'pointer',
             boxShadow: '0 0 20px rgba(0,255,136,0.4)',
-            opacity: isLoading ? 0.6 : 1
+            opacity: isLoading ? 0.6 : 1,
+            transition: 'all 0.2s'
           }}
-        >GENERATE DANCE</button>
+        >
+          {isLoading ? 'GENERATING...' : 'GENERATE DANCE'}
+        </button>
       </form>
     </div>
   )
