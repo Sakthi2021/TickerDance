@@ -40,6 +40,10 @@ TickerDance/
 │   │   └── __init__.py
 │   ├── requirements.txt
 │   └── .env
+├── mcp_server/
+│   ├── server.py               # MCP server with analyze_stock_data tool
+│   └── requirements.txt
+├── ticker.json                 # MCP server configuration
 └── README.md
 ```
 
@@ -54,6 +58,34 @@ TickerDance/
 - **Dance DNA Panel:** Live metric bars showing volatility, momentum, volume, trend, energy and tempo with market direction badge (BULLISH, BEARISH, SIDEWAYS) and unique choreography seed
 
 ## Installation & Setup
+### MCP Server (Optional)
+
+The MCP server enables programmatic access to TickerDance stock analysis:
+
+1. Create a virtual environment and install dependencies:
+    ```bash
+    cd mcp_server
+    python -m venv venv
+    .\venv\Scripts\activate    # Windows
+    # or: source venv/bin/activate  # macOS/Linux
+    pip install -r requirements.txt
+    ```
+
+2. Set the `KILO_CONFIG` environment variable to load the configuration:
+    ```bash
+    # Windows PowerShell
+    $env:KILO_CONFIG="C:\path\to\TickerDance\ticker.json"
+    
+    # macOS/Linux
+    export KILO_CONFIG=/path/to/TickerDance/ticker.json
+    ```
+
+3. Run the MCP server:
+    ```bash
+    python mcp_server/server.py
+    ```
+
+Or configure directly in your MCP client by setting the environment variable to point to `ticker.json`.
 
 ### 1. Backend Setup
 
@@ -134,6 +166,203 @@ Response:
   }
 }
 ```
+
+## MCP Server
+
+TickerDance exposes 5 MCP tools that allow
+GitHub Copilot and other AI agents to analyze
+stock market behavior, compare companies, and
+understand dance choreography — all without
+opening the browser.
+
+### Setup
+
+1. Navigate to mcp_server folder:
+   cd mcp_server
+
+2. Install dependencies:
+   pip install -r requirements.txt
+
+3. Start the MCP server:
+   python server.py
+
+4. The .vscode/mcp.json file is included for
+   VS Code GitHub Copilot integration.
+   Open VS Code, go to Copilot Chat,
+   switch to Agent Mode and the tools
+   will be available automatically.
+
+### MCP Tools
+
+#### Tool 1: analyze_stock_data
+Fetches real stock market data for a company
+and returns dance parameters that control the
+3D dance animation in TickerDance.
+
+Input:
+  company_name: "Tesla"
+  start_date: "2024-01-01"
+  end_date: "2024-06-01"
+  dance_style: "hip-hop"
+
+Example Copilot query:
+  "Use TickerDance to analyze Tesla stock
+   from 2024-01-01 to 2024-06-01 with hip-hop style"
+
+Example output:
+  Company: Tesla
+  Ticker: TSLA
+  BPM: 127
+  Market mood: INTENSE
+  Dancer color: ORANGE (BEARISH)
+  Interpretation: Tesla has INTENSE market behavior
+  with BPM of 127. Dancer will appear ORANGE (BEARISH).
+
+---
+
+#### Tool 2: get_market_mood
+Analyzes stock data and returns a unique market
+personality label that explains WHY the dancer
+moves the way it does in TickerDance.
+
+Personality labels:
+  THE WILDCARD - high volatility, bullish
+  THE REBEL - high volatility, bearish
+  THE STEADY CLIMBER - low volatility, bullish
+  THE INTROVERT - low volatility, bearish
+  THE CROWD PLEASER - high volume, bullish
+  THE FALLEN STAR - high volume, bearish
+  THE CHAMPION - strong momentum
+  THE PHILOSOPHER - neutral sideways
+
+Input:
+  company_name: "GameStop"
+  start_date: "2024-01-01"
+  end_date: "2024-06-01"
+
+Example Copilot query:
+  "Use get_market_mood tool to find the
+   personality of GameStop from 2024-01-01
+   to 2024-06-01"
+
+Example output:
+  Personality: THE WILDCARD
+  Description: GameStop is extremely volatile
+  with strong upward momentum. High risk,
+  high reward energy.
+  Dance vibe: Explosive hip-hop with green
+  particles everywhere and very fast BPM.
+  BPM: 170
+
+---
+
+#### Tool 3: recommend_date_range
+Scans the last 60 days of stock data and finds
+the most volatile and interesting 30-day period
+for a company — helping users find the best
+dates for the most dramatic dance performance.
+
+Input:
+  company_name: "Tesla"
+
+Example Copilot query:
+  "What is the best date range to generate
+   the most dramatic dance for Tesla
+   in TickerDance?"
+
+Example output:
+  Recommended start date: YYYY-MM-DD
+  Recommended end date: YYYY-MM-DD
+  Volatility score: 85%
+  Expected BPM: 160
+  Tip: Open TickerDance, select Tesla,
+  set these dates for the most dramatic
+  dance performance.
+
+---
+
+#### Tool 4: get_company_profile
+Returns detailed profile for any supported company
+including sector, country, market category,
+expected BPM range, dance personality trait
+and a fun market fact.
+
+Input:
+  company_name: "GameStop"
+
+Example Copilot query:
+  "Tell me about GameStop's profile and
+   what kind of dancer it is in TickerDance"
+
+Example output:
+  Company: GameStop
+  Ticker: GME
+  Sector: Retail
+  Country: USA
+  Market category: Extreme Volatility
+  Expected BPM range: 150-180
+  Dance trait: Meme stock madness — Reddit-driven
+  chaos creates the most frantic dance possible
+  Fun fact: Rose 1700% in January 2021 driven
+  by Reddit WallStreetBets
+
+---
+
+#### Tool 5: compare_stocks
+Compares two companies side by side and determines
+which one has a more energetic and dramatic dance
+performance in TickerDance. Perfect for live demos.
+
+Input:
+  company_a: "Coca-Cola"
+  company_b: "GameStop"
+  start_date: "2024-01-01"
+  end_date: "2024-06-01"
+
+Example Copilot query:
+  "Compare Coca-Cola and GameStop in TickerDance
+   from 2024-01-01 to 2024-06-01. Which one
+   dances more intensely?"
+
+Example output:
+  Winner: GameStop
+  BPM difference: 122
+  Coca-Cola BPM: 48, Volatility: 5%, Energy: 13
+  GameStop BPM: 170, Volatility: 93%, Energy: 66
+  Verdict: GameStop dances significantly more
+  intensely than Coca-Cola in that date range.
+
+---
+
+### Architecture
+
+The MCP server sits as a parallel layer
+alongside the frontend:
+
+Frontend (React)
+  calls backend directly via axios
+
+GitHub Copilot Agent Mode
+  calls MCP tools
+  MCP Server calls FastAPI backend
+  FastAPI calls yfinance
+  Returns formatted response to Copilot
+
+MCP is not involved when user clicks
+Generate Dance in the browser.
+MCP is only used when an AI agent
+queries the tools directly.
+
+### Requirements
+
+Make sure the FastAPI backend is running
+before using MCP tools:
+  cd backend
+  uvicorn app.main:app --reload
+
+Then start MCP server:
+  cd mcp_server
+  python server.py
 
 ## Notes
 
