@@ -7,6 +7,19 @@ import yfinance as yf
 from typing import Dict, Tuple
 
 COMPANY_TICKER_MAP = {
+    # Ultra Stable (Very Low BPM)
+    "Coca-Cola": "KO",
+    "Johnson & Johnson": "JNJ",
+    "Procter & Gamble": "PG",
+    "Walmart": "WMT",
+    "Berkshire Hathaway": "BRK-B",
+    
+    # Indian Stable
+    "Asian Paints": "ASIANPAINT.NS",
+    "Nestle India": "NESTLEIND.NS",
+    "Hindustan Unilever": "HINDUNILVR.NS",
+    
+    # Indian Markets
     "Infosys": "INFY",
     "TCS": "TCS.NS",
     "Wipro": "WIPRO.NS",
@@ -14,12 +27,25 @@ COMPANY_TICKER_MAP = {
     "Reliance": "RELIANCE.NS",
     "HDFC Bank": "HDFCBANK.NS",
     "Zomato": "ZOMATO.NS",
+    "Paytm": "PAYTM.NS",
+    "Adani Enterprises": "ADANIENT.NS",
+    "Yes Bank": "YESBANK.NS",
+    
+    # US Stable
     "Apple": "AAPL",
-    "Tesla": "TSLA",
     "Microsoft": "MSFT",
     "Google": "GOOGL",
     "Amazon": "AMZN",
     "Netflix": "NFLX",
+    
+    # High Volatility (Very High BPM)
+    "Tesla": "TSLA",
+    "Nvidia": "NVDA",
+    "GameStop": "GME",
+    "AMC": "AMC",
+    "Coinbase": "COIN",
+    "Rivian": "RIVN",
+    "Palantir": "PLTR",
 }
 
 
@@ -54,9 +80,18 @@ def analyze_stock_data(
     volume = data["Volume"].squeeze().astype(float)
 
     returns = close.pct_change().dropna()
-    volatility = float(returns.std())
-    momentum = float((close.iloc[-1] - close.iloc[0]) / close.iloc[0])
-    volume_intensity = float(volume.mean() / max(volume.max(), 1.0))
+    raw_volatility = float(returns.std())
+    min_vol = 0.001
+    max_vol = 0.05
+    volatility = float(np.clip(
+      (raw_volatility - min_vol) / (max_vol - min_vol),
+      0.0, 1.0
+    ))
+    
+    raw_momentum = float((close.iloc[-1] - close.iloc[0]) / close.iloc[0])
+    momentum = float(np.clip(raw_momentum, -1.0, 1.0))
+    
+    volume_intensity = float(np.clip(volume.mean() / volume.max(), 0.0, 1.0))
     price_range_normalized = float((close.max() - close.min()) / max(close.mean(), 1.0))
 
     trend_direction = float(np.sign(momentum))

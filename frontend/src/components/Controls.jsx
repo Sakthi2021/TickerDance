@@ -1,5 +1,7 @@
-const INDIAN_STOCKS = ['Infosys', 'TCS', 'Wipro', 'HCL Tech', 'Reliance', 'HDFC Bank', 'Zomato']
-const US_STOCKS = ['Apple', 'Tesla', 'Microsoft', 'Google', 'Amazon', 'Netflix']
+const STABLE_STOCKS = ['Coca-Cola', 'Johnson & Johnson', 'Procter & Gamble', 'Walmart', 'Berkshire Hathaway', 'Asian Paints', 'Nestle India', 'Hindustan Unilever']
+const INDIAN_STOCKS = ['Infosys', 'TCS', 'Wipro', 'HCL Tech', 'Reliance', 'HDFC Bank', 'Zomato', 'Paytm', 'Adani Enterprises', 'Yes Bank']
+const US_STABLE = ['Apple', 'Microsoft', 'Google', 'Amazon', 'Netflix']
+const HIGH_VOLATILITY = ['Tesla', 'Nvidia', 'GameStop', 'AMC', 'Coinbase', 'Rivian', 'Palantir']
 const DANCE_STYLES = ['hip-hop', 'ballet', 'classical', 'robot', 'breakdance']
 
 export default function Controls({
@@ -52,11 +54,17 @@ export default function Controls({
             onFocus={(e) => e.target.style.borderColor = '#00ff88'}
             onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
           >
-            <optgroup label="Indian Stocks">
+            <optgroup label="Stable — Low BPM">
+              {STABLE_STOCKS.map(s => <option key={s} value={s}>{s}</option>)}
+            </optgroup>
+            <optgroup label="Indian Markets">
               {INDIAN_STOCKS.map(s => <option key={s} value={s}>{s}</option>)}
             </optgroup>
-            <optgroup label="US Stocks">
-              {US_STOCKS.map(s => <option key={s} value={s}>{s}</option>)}
+            <optgroup label="US Stable">
+              {US_STABLE.map(s => <option key={s} value={s}>{s}</option>)}
+            </optgroup>
+            <optgroup label="High Volatility — High BPM">
+              {HIGH_VOLATILITY.map(s => <option key={s} value={s}>{s}</option>)}
             </optgroup>
           </select>
         </div>

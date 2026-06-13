@@ -1,20 +1,38 @@
+import { useEffect, useRef } from 'react'
 import Dancer from './Dancer'
 
 export default function Stage({ danceParams, danceStyle, color = '#00ff88' }) {
-  const volatility = danceParams?.volatility || 0.3
+  const canvasRef = useRef(null)
+  const volatility = danceParams?.volatility || 0
   const volume = danceParams?.volume_intensity || 0.5
   const momentum = danceParams?.momentum || 0
-  const energy = volatility * 0.6 + volume * 0.4
+  const trendDirection = danceParams?.trend_direction || 0
+  const bpm = Math.round(40 + volatility * 140)
+  const energy = volatility * 0.7 + volume * 0.3
+  const isHighEnergy = energy > 0.6
+  const isLowEnergy = energy < 0.3
 
-  const styleMultiplier =
+  const isBullish = trendDirection > 0.1
+  const isBearish = trendDirection < -0.1
+
+  const bpmColor = 
+    bpm < 60 ? '#00d4ff' :
+    bpm < 100 ? '#00ff88' : '#ff4444'
+
+  const getRingColor = () => {
+    if (isBullish) return '#00ff88'
+    if (isBearish) return '#ff4444'
+    return '#ffaa00'
+  }
+
+  const baseSpeed =
     danceStyle === 'hip-hop' ? 1.0 :
-    danceStyle === 'ballet' ? 0.25 :
-    danceStyle === 'classical' ? 0.5 :
-    danceStyle === 'robot' ? 0.4 :
-    danceStyle === 'breakdance' ? 2.0 : 1.0
+    danceStyle === 'ballet' ? 0.4 :
+    danceStyle === 'classical' ? 0.7 :
+    danceStyle === 'robot' ? 0.5 :
+    danceStyle === 'breakdance' ? 1.5 : 1.0
 
-  const speed = styleMultiplier * (0.3 + energy * 4.0)
-  const bpm = Math.round(speed * 60)
+  const speed = baseSpeed * (0.2 + volatility * 1.8)
 
   const getOverlayText = () => {
     if (volatility > 0.5) return 'HIGH VOLATILITY — INTENSE'
@@ -23,6 +41,153 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88' }) {
     if (momentum < -0.3) return 'BEARISH TREND'
     return null
   }
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !danceParams) return
+    
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    
+    canvas.width = canvas.offsetWidth
+    canvas.height = canvas.offsetHeight
+    
+    const centerX = canvas.width / 2
+    const centerY = canvas.height / 2
+    const ringColor = getRingColor()
+    
+    let ringCount, maxRadius, ringSpeed, ringOpacity, ringOffsets
+    
+    if (isLowEnergy) {
+      ringCount = 3
+      maxRadius = 80
+      ringSpeed = 0.5
+      ringOpacity = 0.15
+      ringOffsets = [0, 30, 60]
+    } else if (isHighEnergy) {
+      ringCount = 6
+      maxRadius = 280
+      ringSpeed = 3.5
+      ringOpacity = 0.6
+      ringOffsets = [0, 50, 100, 150, 200, 250]
+    } else {
+      ringCount = 4
+      maxRadius = 180
+      ringSpeed = 1.5
+      ringOpacity = 0.35
+      ringOffsets = [0, 45, 90, 135]
+    }
+    
+    let s = Math.round((volatility * 0.6 + volume * 0.4) * 10000 + momentum * 1000)
+    const rng = () => {
+      s = (s * 1664525 + 1013904223) & 0xffffffff
+      return (s >>> 0) / 0xffffffff
+    }
+    
+    const rings = ringOffsets.map(offset => {
+      const baseSpeed = ringSpeed
+      const speedVar = isHighEnergy ? baseSpeed * (0.8 + rng() * 0.4) : baseSpeed
+      return {
+        radius: offset,
+        speed: speedVar,
+        maxRadius
+      }
+    })
+    
+    let totalParticles, spawnXBase, spawnYBase, particleVx, particleVy, particleColors, shadowBlur, shadowColor
+    
+    if (isBullish) {
+      totalParticles = 50
+      spawnXBase = () => rng() * canvas.width
+      spawnYBase = () => rng() * canvas.height
+      particleVx = () => (rng() - 0.5) * 1.5
+      particleVy = () => -(rng() * 1 + 0.2)
+      particleColors = ['#00ff88', '#00d4ff', '#ffffff']
+      shadowBlur = 8
+      shadowColor = '#00ff88'
+    } else if (isBearish) {
+      totalParticles = 8
+      spawnXBase = () => rng() * canvas.width
+      spawnYBase = () => 0
+      particleVx = () => (rng() - 0.5) * 0.5
+      particleVy = () => rng() * 1.5 + 0.5
+      particleColors = ['#ff4444', '#ff6b35', '#8b0000']
+      shadowBlur = 8
+      shadowColor = '#ff4444'
+    } else {
+      totalParticles = 25
+      spawnXBase = () => canvas.width / 2
+      spawnYBase = () => canvas.height / 2
+      particleVx = () => (rng() - 0.5) * 3
+      particleVy = () => (rng() - 0.5) * 1
+      particleColors = ['#ffaa00', '#ffd700', '#ffffff']
+      shadowBlur = 4
+      shadowColor = '#ffaa00'
+    }
+    
+    const particleSize = 1.5 + volatility * 4
+    const lifeSpeed = 0.005 + volume * 0.02
+    
+    const particles = Array.from({ length: totalParticles }, () => ({
+      x: spawnXBase(),
+      y: spawnYBase(),
+      vx: particleVx(),
+      vy: particleVy(),
+      size: particleSize,
+      life: rng(),
+      lifeSpeed,
+      color: particleColors[Math.floor(rng() * particleColors.length)]
+    }))
+    
+    let animId
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      
+      rings.forEach(ring => {
+        ring.radius += ring.speed
+        if (ring.radius > ring.maxRadius) ring.radius = 0
+        const opacity = (1 - ring.radius / ring.maxRadius) * ringOpacity
+        ctx.beginPath()
+        ctx.arc(centerX, centerY, ring.radius, 0, Math.PI * 2)
+        ctx.strokeStyle = ringColor
+        ctx.globalAlpha = opacity
+        ctx.lineWidth = 3
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      })
+      
+      particles.forEach(p => {
+        p.x += p.vx
+        p.y += p.vy
+        p.vy += 0.04
+        p.life += p.lifeSpeed
+        
+        if (p.life >= 1) {
+          p.x = spawnXBase()
+          p.y = spawnYBase()
+          p.vx = particleVx()
+          p.vy = particleVy()
+          p.life = 0
+        }
+        
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fillStyle = p.color
+        ctx.globalAlpha = (1 - p.life) * 0.9
+        ctx.shadowBlur = shadowBlur
+        ctx.shadowColor = shadowColor
+        ctx.fill()
+        ctx.shadowBlur = 0
+        ctx.globalAlpha = 1
+      })
+      
+      animId = requestAnimationFrame(animate)
+    }
+    
+    animate()
+    
+    return () => cancelAnimationFrame(animId)
+  }, [danceParams, danceStyle])
 
   return (
     <div style={{
@@ -33,6 +198,18 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88' }) {
       borderRadius: 12,
       overflow: 'hidden'
     }}>
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          pointerEvents: 'none'
+        }}
+      />
       <div style={{
         position: 'absolute',
         top: 0,
@@ -81,7 +258,7 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88' }) {
         zIndex: 2
       }}>
         <p style={{ color: '#555', fontFamily: "'Orbitron', monospace", fontSize: 10, margin: 0 }}>BPM</p>
-        <p style={{ color: '#00ff88', fontFamily: "'Orbitron', monospace", fontSize: 24, fontWeight: 700, margin: 0 }}>{bpm}</p>
+        <p style={{ color: bpmColor, fontFamily: "'Orbitron', monospace", fontSize: 24, fontWeight: 700, margin: 0 }}>{bpm}</p>
       </div>
       <div style={{
         position: 'absolute',

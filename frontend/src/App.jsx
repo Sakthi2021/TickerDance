@@ -121,9 +121,9 @@ export default function App() {
 
       <main style={{
         display: 'grid',
-        gridTemplateColumns: '300px 1fr 280px',
+        gridTemplateColumns: '260px 1fr 260px',
         gap: '16px',
-        padding: '0 24px 24px 24px',
+        padding: '0 16px 16px 16px',
         width: '100%',
         boxSizing: 'border-box',
         height: 'calc(100vh - 120px)'
