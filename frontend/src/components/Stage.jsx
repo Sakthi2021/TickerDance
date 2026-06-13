@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import Dancer from './Dancer'
+import MusicEngine from './MusicEngine'
 
-export default function Stage({ danceParams, danceStyle, color = '#00ff88' }) {
+export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPlaying = false, isMuted = false, onMute }) {
   const canvasRef = useRef(null)
   const volatility = danceParams?.volatility || 0
   const volume = danceParams?.volume_intensity || 0.5
@@ -260,6 +261,28 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88' }) {
         <p style={{ color: '#555', fontFamily: "'Orbitron', monospace", fontSize: 10, margin: 0 }}>BPM</p>
         <p style={{ color: bpmColor, fontFamily: "'Orbitron', monospace", fontSize: 24, fontWeight: 700, margin: 0 }}>{bpm}</p>
       </div>
+      <button
+        onClick={() => onMute && onMute(!isMuted)}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          background: 'transparent',
+          border: '1px solid #1e1e2e',
+          color: isMuted ? '#555' : '#00ff88',
+          fontFamily: "'Orbitron', monospace",
+          fontSize: 9,
+          letterSpacing: 2,
+          padding: '6px 12px',
+          cursor: 'pointer',
+          zIndex: 3
+        }}
+      >{isMuted ? 'UNMUTE' : 'MUTE'}</button>
+      <MusicEngine
+        danceParams={danceParams}
+        danceStyle={danceStyle}
+        isPlaying={isPlaying}
+      />
       <div style={{
         position: 'absolute',
         top: 0,

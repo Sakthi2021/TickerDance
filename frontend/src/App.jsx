@@ -10,6 +10,7 @@ export default function App() {
   const [danceStyle, setDanceStyle] = useState('hip-hop')
   const [danceParams, setDanceParams] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
 
   const generateSeed = (company, start, end, style) => {
     let hash = 0
@@ -142,9 +143,9 @@ export default function App() {
             isLoading={isLoading}
           />
         </div>
-        <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
-          <Stage danceParams={danceParams} danceStyle={danceStyle} color="#00ff88" />
-        </div>
+<div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
+           <Stage danceParams={danceParams} danceStyle={danceStyle} color="#00ff88" isPlaying={!!danceParams && !isMuted} isMuted={isMuted} onMute={setIsMuted} />
+         </div>
         <div style={{ width: '100%', overflowY: 'auto' }}>
           <div style={{ background: '#111118', border: '1px solid #1e1e2e', borderRadius: 12, padding: 24 }}>
             {renderDNA(danceParams)}
