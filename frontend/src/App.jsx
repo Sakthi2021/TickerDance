@@ -24,6 +24,7 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setDanceParams(null)
 
     try {
       const response = await axios.post('http://localhost:8000/api/analyze', {
@@ -34,9 +35,12 @@ export default function App() {
       })
 
       setDanceParams(response.data.dance_parameters)
+      
+      setTimeout(() => {
+        setIsLoading(false)
+      }, 1500)
     } catch (error) {
       console.error('Failed to fetch dance parameters', error)
-    } finally {
       setIsLoading(false)
     }
   }
@@ -144,7 +148,7 @@ export default function App() {
           />
         </div>
 <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
-           <Stage danceParams={danceParams} danceStyle={danceStyle} color="#00ff88" isPlaying={!!danceParams && !isMuted} isMuted={isMuted} onMute={setIsMuted} company={company} startDate={startDate} endDate={endDate} />
+           <Stage danceParams={danceParams} danceStyle={danceStyle} color="#00ff88" isPlaying={!!danceParams && !isMuted} isMuted={isMuted} onMute={setIsMuted} company={company} startDate={startDate} endDate={endDate} isLoading={isLoading} />
          </div>
         <div style={{ width: '100%', overflowY: 'auto' }}>
           <div style={{ background: '#111118', border: '1px solid #1e1e2e', borderRadius: 12, padding: 24 }}>

@@ -6,13 +6,14 @@ export default function MusicEngine({
   isPlaying,
   company,
   startDate,
-  endDate
+  endDate,
+  isLoading
 }) {
   const audioCtxRef = useRef(null)
   const intervalsRef = useRef([])
 
   useEffect(() => {
-    if (!isPlaying || !danceParams) return
+    if (!isPlaying || !danceParams || isLoading) return
 
     const ctx = new (window.AudioContext || 
                      window.webkitAudioContext)()
@@ -334,7 +335,7 @@ export default function MusicEngine({
         audioCtxRef.current.close()
       }
     }
-  }, [danceParams, danceStyle, isPlaying, company, startDate, endDate])
+  }, [danceParams, danceStyle, isPlaying, company, startDate, endDate, isLoading])
 
   return null
 }

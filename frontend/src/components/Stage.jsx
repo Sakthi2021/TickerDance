@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Dancer from './Dancer'
 import MusicEngine from './MusicEngine'
 
-export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPlaying = false, isMuted = false, onMute, company, startDate, endDate }) {
+export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPlaying = false, isMuted = false, onMute, company, startDate, endDate, isLoading = false }) {
   const canvasRef = useRef(null)
+  const [isPaused, setIsPaused] = useState(false)
   const volatility = danceParams?.volatility || 0
   const volume = danceParams?.volume_intensity || 0.5
   const momentum = danceParams?.momentum || 0
@@ -33,7 +34,7 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
     danceStyle === 'robot' ? 0.5 :
     danceStyle === 'breakdance' ? 1.5 : 1.0
 
-  const speed = baseSpeed * (0.2 + volatility * 1.8)
+  const speed = isPaused ? 0 : baseSpeed * (0.2 + volatility * 1.8)
 
   const getOverlayText = () => {
     if (volatility > 0.5) return 'HIGH VOLATILITY — INTENSE'
@@ -44,6 +45,8 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
   }
 
   useEffect(() => {
+    if (isPaused) return
+
     const canvas = canvasRef.current
     if (!canvas || !danceParams) return
     
@@ -86,8 +89,8 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
     }
     
     const rings = ringOffsets.map(offset => {
-      const baseSpeed = ringSpeed
-      const speedVar = isHighEnergy ? baseSpeed * (0.8 + rng() * 0.4) : baseSpeed
+      const baseSp = ringSpeed
+      const speedVar = isHighEnergy ? baseSp * (0.8 + rng() * 0.4) : baseSp
       return {
         radius: offset,
         speed: speedVar,
@@ -188,7 +191,7 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
     animate()
     
     return () => cancelAnimationFrame(animId)
-  }, [danceParams, danceStyle])
+  }, [danceParams, danceStyle, isPaused])
 
   return (
     <div style={{
@@ -199,6 +202,45 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
       borderRadius: 12,
       overflow: 'hidden'
     }}>
+      {isLoading && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(10, 10, 15, 0.95)',
+          zIndex: 10,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none'
+        }}>
+          <div style={{
+            width: 60,
+            height: 60,
+            border: '2px solid #1e1e2e',
+            borderTop: '2px solid #00ff88',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <p style={{
+            color: '#00ff88',
+            fontFamily: "'Orbitron', monospace",
+            fontSize: 11,
+            letterSpacing: 3,
+            marginTop: 16,
+            textTransform: 'uppercase'
+          }}>ANALYZING MARKET DATA</p>
+          <p style={{
+            color: '#444',
+            fontSize: 10,
+            letterSpacing: 2,
+            marginTop: 8
+          }}>Generating choreography...</p>
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         style={{
@@ -278,13 +320,32 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
           zIndex: 3
         }}
       >{isMuted ? 'UNMUTE' : 'MUTE'}</button>
+      <button
+        onClick={() => setIsPaused(!isPaused)}
+        style={{
+          position: 'absolute',
+          bottom: 16,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'transparent',
+          border: '1px solid #1e1e2e',
+          color: isPaused ? '#00ff88' : '#555',
+          fontFamily: "'Orbitron', monospace",
+          fontSize: 10,
+          letterSpacing: 3,
+          padding: '8px 24px',
+          cursor: 'pointer',
+          zIndex: 10
+        }}
+      >{isPaused ? 'RESUME' : 'PAUSE'}</button>
       <MusicEngine
         danceParams={danceParams}
         danceStyle={danceStyle}
-        isPlaying={isPlaying}
+        isPlaying={!!danceParams && !isPaused && !isMuted}
         company={company}
         startDate={startDate}
         endDate={endDate}
+        isLoading={isLoading}
       />
       <div style={{
         position: 'absolute',
@@ -302,6 +363,12 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
           <Dancer danceStyle={danceStyle} speed={speed} color={color} volatility={volatility} volume={volume} momentum={momentum} />
         )}
       </div>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }
