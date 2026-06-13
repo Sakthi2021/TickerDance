@@ -1,5 +1,5 @@
 import { useEffect, useRef, Suspense } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas } from '@react-three/fiber'
 import { useFBX, useAnimations, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
