@@ -129,13 +129,19 @@ export default function Controls({
             letterSpacing: 2,
             textTransform: 'uppercase'
           }}>Dance Style</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '8px',
+            width: '100%'
+          }}>
             {DANCE_STYLES.map(style => (
               <button
                 key={style}
                 type="button"
                 onClick={() => setDanceStyle(style)}
                 style={{
+                  width: '100%',
                   padding: '8px 4px',
                   background: '#0a0a0f',
                   border: danceStyle === style ? '1px solid #00ff88' : '1px solid #1e1e2e',
@@ -146,7 +152,9 @@ export default function Controls({
                   letterSpacing: 2,
                   textTransform: 'uppercase',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                  ...(style === 'breakdance' && { gridColumn: '1 / -1' })
                 }}
               >{style}</button>
             ))}
