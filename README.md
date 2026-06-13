@@ -2,13 +2,12 @@
 
 ## Project Overview
 
-TickerDance is a creative web app that turns real stock market data into a dynamic dancing animation. Each company’s stock movement generates a unique dance pattern, and users can choose dance styles like hip-hop, ballet, or classical to customize the visual presentation.
+TickerDance is a creative web app that turns real stock market data into a dynamic dancing animation. Each company's stock movement generates a unique dance pattern, and users can choose dance styles like hip-hop, ballet, or classical to customize the visual presentation.
 
 ## Tech Stack
 
 - **Frontend:** React + Vite, Anime.js, Tailwind CSS, Axios
 - **Backend:** Python FastAPI, yfinance, pandas, numpy, uvicorn
-- **MCP Server:** Python MCP SDK with 3 tools: `analyze_stock_data`, `get_dance_style`, `get_company_profile`
 
 ## Folder Structure
 
@@ -29,11 +28,6 @@ A recommended project structure for TickerDance is:
     - `main.py`
     - `stock_data.py`
     - `models.py`
-  - `requirements.txt`
-
-- `mcp_server/`
-  - `server.py`
-  - `tools.py`
   - `requirements.txt`
 
 - `README.md`
@@ -91,48 +85,7 @@ A recommended project structure for TickerDance is:
 
 4. Open the app in the browser using the local URL Vite displays, usually `http://localhost:5173`.
 
-### 3. MCP Server Setup
-
-1. Open a third terminal and navigate to the MCP server folder:
-   ```bash
-   cd mcp_server
-   ```
-
-2. Create and activate a virtual environment for the MCP server:
-   ```bash
-   python -m venv venv
-   ```
-
-   - Windows:
-     ```bash
-     .\venv\Scripts\activate
-     ```
-   - macOS / Linux:
-     ```bash
-     source venv/bin/activate
-     ```
-
-3. Install the MCP server dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## How to Run the MCP Server
-
-1. With the MCP virtual environment activated, start the MCP server:
-   ```bash
-   python server.py
-   ```
-
-2. Confirm the server is running and available for requests.
-
-3. The MCP server should expose these tools for integration with TickerDance:
-   - `analyze_stock_data`
-   - `get_dance_style`
-   - `get_company_profile`
-
 ## Notes
 
 - Make sure the backend is running before loading stock data in the frontend.
 - The frontend should use Axios to request stock and animation data from the FastAPI backend.
-- Use the MCP server for specialized AI-assisted stock analysis, dance style selection, and company profile lookups.
