@@ -1,8 +1,8 @@
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
-from mcp import create_server, tool
+from mcp.server.fastmcp import FastMCP
 
 COMPANY_TICKER_MAP = {
     "Infosys": "INFY",
@@ -37,7 +37,8 @@ COMPANY_PROFILES = {
 }
 
 BACKEND_URL = "http://localhost:8000/api/analyze"
-DEFAULT_DANCE_STYLE = "classical"
+
+mcp = FastMCP("TickerDance MCP Server")
 
 
 def _post_json(url: str, body: dict) -> dict:
@@ -48,7 +49,6 @@ def _post_json(url: str, body: dict) -> dict:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             response_data = response.read().decode("utf-8")
@@ -60,65 +60,63 @@ def _post_json(url: str, body: dict) -> dict:
         raise RuntimeError(f"Backend request failed: {error.reason}")
 
 
-server = create_server(transport="stdio")
-
-
-@tool(name="analyze_stock_data")
-def analyze_stock_data(company_name: str, start_date: str, end_date: str) -> dict:
+@mcp.tool()
+def analyze_stock_data(company_name: str, start_date: str, end_date: str, dance_style: str) -> str:
     """Fetch dance parameters from the FastAPI backend for a company and date range."""
     if company_name not in COMPANY_TICKER_MAP:
         raise ValueError(f"Unknown company: {company_name}")
-
     body = {
         "company_name": company_name,
         "start_date": start_date,
         "end_date": end_date,
-        "dance_style": DEFAULT_DANCE_STYLE,
+        "dance_style": dance_style,
     }
     result = _post_json(BACKEND_URL, body)
-    return result.get("dance_parameters", {})
+    return json.dumps(result.get("dance_parameters", {}))
 
 
-@tool(name="get_dance_style")
-def get_dance_style(style_name: str) -> dict:
+@mcp.tool()
+def get_dance_style(style_name: str) -> str:
     """Return movement rules for the requested dance style."""
-    style_name = style_name.strip().lower()
+    style_key = style_name.strip().lower()
     styles = {
         "hip-hop": {
+            "style": "hip-hop",
             "speed": "fast",
             "angles": "sharp",
             "bounce": "high",
-            "energy": "street",
+            "smoothness": 0.2,
+            "speed_multiplier": 1.8,
         },
         "ballet": {
+            "style": "ballet",
             "speed": "slow",
-            "style": "graceful",
-            "spread": "wide",
+            "movement": "graceful",
             "bounce": "low",
-            "flow": "elegant",
+            "smoothness": 0.9,
+            "speed_multiplier": 0.6,
         },
         "classical": {
+            "style": "classical",
             "speed": "medium",
             "curves": "smooth",
             "bounce": "medium",
-            "tone": "formal",
+            "smoothness": 0.6,
+            "speed_multiplier": 1.0,
         },
     }
-
-    if style_name not in styles:
+    if style_key not in styles:
         raise ValueError("Style must be one of: hip-hop, ballet, classical")
+    return json.dumps(styles[style_key])
 
-    return styles[style_name]
 
-
-@tool(name="get_company_profile")
-def get_company_profile(company_name: str) -> dict:
+@mcp.tool()
+def get_company_profile(company_name: str) -> str:
     """Return ticker, sector, and country for a company."""
-    profile = COMPANY_PROFILES.get(company_name)
-    if profile is None:
+    if company_name not in COMPANY_PROFILES:
         raise ValueError(f"Unknown company: {company_name}")
-    return profile
+    return json.dumps(COMPANY_PROFILES[company_name])
 
 
 if __name__ == "__main__":
-    server.serve()
+    mcp.run()
