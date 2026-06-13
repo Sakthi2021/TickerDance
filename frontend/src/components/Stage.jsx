@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import Dancer from './Dancer'
 import MusicEngine from './MusicEngine'
 
-export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPlaying = false, isMuted = false, onMute }) {
+export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPlaying = false, isMuted = false, onMute, company, startDate, endDate }) {
   const canvasRef = useRef(null)
   const volatility = danceParams?.volatility || 0
   const volume = danceParams?.volume_intensity || 0.5
@@ -282,6 +282,9 @@ export default function Stage({ danceParams, danceStyle, color = '#00ff88', isPl
         danceParams={danceParams}
         danceStyle={danceStyle}
         isPlaying={isPlaying}
+        company={company}
+        startDate={startDate}
+        endDate={endDate}
       />
       <div style={{
         position: 'absolute',

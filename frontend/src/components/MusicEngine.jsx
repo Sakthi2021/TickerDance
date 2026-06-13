@@ -3,7 +3,10 @@ import { useEffect, useRef } from 'react'
 export default function MusicEngine({ 
   danceParams, 
   danceStyle,
-  isPlaying 
+  isPlaying,
+  company,
+  startDate,
+  endDate
 }) {
   const audioCtxRef = useRef(null)
   const intervalsRef = useRef([])
@@ -24,80 +27,139 @@ export default function MusicEngine({
     const bpm = Math.round(40 + volatility * 140)
     const beatInterval = (60 / bpm) * 1000
 
-    const bullishNotes = [
-      261.63, 293.66, 329.63, 
-      349.23, 392.00, 440.00, 493.88
-    ]
-    const bearishNotes = [
-      261.63, 293.66, 311.13, 
-      349.23, 392.00, 415.30, 466.16
-    ]
-    const scale = trend > 0 ? bullishNotes : bearishNotes
+    function hashString(str) {
+      let hash = 0
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i)
+        hash = ((hash << 5) - hash) + char
+        hash = hash & hash
+      }
+      return Math.abs(hash)
+    }
 
-    const noteCount = Math.round(3 + priceRange * 4)
-    const availableNotes = scale.slice(0, noteCount)
+    const seedStr = `${company || 'unknown'}-${startDate || '2024-01-01'}-${endDate || '2024-06-01'}-${danceStyle}`
+    const seed = hashString(seedStr)
 
     function seededRandom(seed) {
-      let s = Math.round(seed)
+      let s = seed
       return function() {
         s = (s * 1664525 + 1013904223) & 0xffffffff
         return (s >>> 0) / 0xffffffff
       }
     }
-    const seed = Math.round(
-      volatility * 1000 +
-      volume * 500 +
-      Math.abs(momentum) * 200 +
-      priceRange * 100
-    )
     const rng = seededRandom(seed)
 
-    const melody = Array.from({length: 16}, () => {
+    const lydianScale = [261.63, 293.66, 329.63, 
+      369.99, 392.00, 440.00, 493.88]
+    const majorScale = [261.63, 293.66, 329.63,
+      349.23, 392.00, 440.00, 493.88]
+    const minorScale = [261.63, 293.66, 311.13,
+      349.23, 392.00, 415.30, 466.16]
+    const phrygianScale = [261.63, 277.18, 311.13,
+      349.23, 392.00, 415.30, 466.16]
+
+    let scale
+    if (momentum > 0.3) scale = lydianScale
+    else if (momentum > 0) scale = majorScale
+    else if (momentum > -0.3) scale = minorScale
+    else scale = phrygianScale
+
+    const transposeMultiplier = 0.75 + volatility * 0.75
+    const transposedScale = scale.map(
+      note => note * transposeMultiplier
+    )
+
+    const noteCount = Math.round(3 + priceRange * 4)
+    const availableNotes = transposedScale.slice(0, noteCount)
+
+    const melody = Array.from({length: 32}, () => {
       const idx = Math.floor(rng() * availableNotes.length)
       return availableNotes[idx]
     })
 
+    const rhythmDensity = 0.2 + volatility * 0.6
+    const rhythmPattern = Array.from({length: 32}, () => 
+      rng() < rhythmDensity
+    )
+
+    const noteDuration = momentum > 0 ? 
+      0.3 + momentum * 0.4 :
+      0.1 + Math.abs(momentum) * 0.1
+
+    function makeDistortionCurve(amount) {
+      const samples = 256
+      const curve = new Float32Array(samples)
+      for (let i = 0; i < samples; i++) {
+        const x = (i * 2) / samples - 1
+        curve[i] = ((Math.PI + amount) * x) / 
+                   (Math.PI + amount * Math.abs(x))
+      }
+      return curve
+    }
+
+    function createReverb(ctx) {
+      const convolver = ctx.createConvolver()
+      const length = ctx.sampleRate * 2
+      const buffer = ctx.createBuffer(2, length, ctx.sampleRate)
+      for (let c = 0; c < 2; c++) {
+        const data = buffer.getChannelData(c)
+        for (let i = 0; i < length; i++) {
+          data[i] = (Math.random() * 2 - 1) * 
+                     Math.pow(1 - i / length, 2)
+        }
+      }
+      convolver.buffer = buffer
+      return convolver
+    }
+
     const masterGain = ctx.createGain()
-    masterGain.gain.value = 0.25
+    masterGain.gain.setValueAtTime(0, ctx.currentTime)
+    masterGain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 2)
+
+    const reverbGain = ctx.createGain()
+    reverbGain.gain.value = 0.4
+    const dryGain = ctx.createGain()
+    dryGain.gain.value = 0.6
+
+    const convolver = createReverb(ctx)
+
+    dryGain.connect(masterGain)
+    reverbGain.connect(convolver)
+    convolver.connect(masterGain)
     masterGain.connect(ctx.destination)
 
     const styleConfig = {
       'hip-hop': {
-        wave: 'sawtooth',
-        attack: 0.01,
-        decay: 0.12,
+        wave: 'sine',
+        distortion: 50,
         hasDrum: true,
         drumPattern: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
         bassNote: 65.41
       },
       'ballet': {
-        wave: 'sine',
-        attack: 0.15,
-        decay: 0.5,
+        wave: 'triangle',
+        distortion: 0,
         hasDrum: false,
-        drumPattern: [],
+        drumPattern: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         bassNote: 0
       },
       'classical': {
         wave: 'triangle',
-        attack: 0.08,
-        decay: 0.35,
+        distortion: 0,
         hasDrum: false,
-        drumPattern: [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+        drumPattern: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         bassNote: 87.31
       },
       'robot': {
-        wave: 'square',
-        attack: 0.001,
-        decay: 0.06,
+        wave: 'triangle',
+        distortion: 200,
         hasDrum: true,
         drumPattern: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
         bassNote: 55.00
       },
       'breakdance': {
-        wave: 'sawtooth',
-        attack: 0.001,
-        decay: 0.08,
+        wave: 'sine',
+        distortion: 100,
         hasDrum: true,
         drumPattern: [1,1,0,1,1,0,1,0,1,1,0,1,1,0,1,1],
         bassNote: 73.42
@@ -107,23 +169,50 @@ export default function MusicEngine({
                    styleConfig['hip-hop']
 
     function playMelodyNote(freq, time) {
-      const osc = ctx.createOscillator()
+      const osc1 = ctx.createOscillator()
+      const osc2 = ctx.createOscillator()
+      const osc3 = ctx.createOscillator()
       const gain = ctx.createGain()
-      osc.type = config.wave
-      osc.frequency.value = freq
+      
+      osc1.type = config.wave
+      osc2.type = config.wave
+      osc3.type = config.wave
+      
+      osc1.frequency.value = freq
+      osc2.frequency.value = freq * 1.003
+      osc3.frequency.value = freq * 0.997
+      
+      osc1.connect(gain)
+      osc2.connect(gain)
+      osc3.connect(gain)
+      
+      if (config.distortion > 0) {
+        const distortion = ctx.createWaveShaper()
+        distortion.curve = makeDistortionCurve(config.distortion)
+        gain.connect(distortion)
+        distortion.connect(dryGain)
+        distortion.connect(reverbGain)
+      } else {
+        gain.connect(dryGain)
+        gain.connect(reverbGain)
+      }
+      
       gain.gain.setValueAtTime(0, time)
       gain.gain.linearRampToValueAtTime(
-        0.15 + volume * 0.1, 
-        time + config.attack
+        0.12 + volume * 0.08, 
+        time + 0.02
       )
       gain.gain.exponentialRampToValueAtTime(
         0.001, 
-        time + config.attack + config.decay
+        time + noteDuration
       )
-      osc.connect(gain)
-      gain.connect(masterGain)
-      osc.start(time)
-      osc.stop(time + config.attack + config.decay + 0.1)
+      
+      osc1.start(time)
+      osc2.start(time)
+      osc3.start(time)
+      osc1.stop(time + noteDuration + 0.1)
+      osc2.stop(time + noteDuration + 0.1)
+      osc3.stop(time + noteDuration + 0.1)
     }
 
     function playBass(time) {
@@ -134,64 +223,103 @@ export default function MusicEngine({
       osc.frequency.value = config.bassNote
       gain.gain.setValueAtTime(0, time)
       gain.gain.linearRampToValueAtTime(
-        0.2 + volume * 0.15, time + 0.02
+        0.25 + volume * 0.15, time + 0.02
       )
       gain.gain.exponentialRampToValueAtTime(
-        0.001, time + 0.3
+        0.001, time + 0.5
       )
       osc.connect(gain)
-      gain.connect(masterGain)
+      gain.connect(dryGain)
+      gain.connect(reverbGain)
       osc.start(time)
-      osc.stop(time + 0.4)
+      osc.stop(time + 0.6)
     }
 
     function playDrum(time) {
-      const bufferSize = Math.floor(ctx.sampleRate * 0.12)
-      const buffer = ctx.createBuffer(
-        1, bufferSize, ctx.sampleRate
-      )
+      const bufferSize = Math.floor(ctx.sampleRate * 0.08)
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
       const data = buffer.getChannelData(0)
       for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1
+        data[i] = (Math.random() * 2 - 1) * 
+                   Math.pow(1 - i / bufferSize, 3)
       }
       const source = ctx.createBufferSource()
       source.buffer = buffer
       const gain = ctx.createGain()
       gain.gain.setValueAtTime(
-        0.25 + volatility * 0.2, time
+        0.3 + volatility * 0.2, time
       )
       gain.gain.exponentialRampToValueAtTime(
-        0.001, time + 0.12
+        0.001, time + 0.08
       )
       const filter = ctx.createBiquadFilter()
       filter.type = 'lowpass'
-      filter.frequency.value = 120 + volatility * 180
+      filter.frequency.value = 200 + volatility * 300
       source.connect(filter)
       filter.connect(gain)
-      gain.connect(masterGain)
+      gain.connect(dryGain)
       source.start(time)
-      source.stop(time + 0.15)
+      source.stop(time + 0.1)
+    }
+
+    function playArpeggio(time) {
+      const arpNotes = [65.41, 98.00, 130.81, 146.83]
+      arpNotes.forEach((freq, i) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'sine'
+        osc.frequency.value = freq
+        const delay = time + i * 0.05
+        gain.gain.setValueAtTime(0.1, delay)
+        gain.gain.exponentialRampToValueAtTime(0.001, delay + 0.08)
+        osc.connect(gain)
+        gain.connect(dryGain)
+        gain.connect(reverbGain)
+        osc.start(delay)
+        osc.stop(delay + 0.1)
+      })
+    }
+
+    function playScratch(time) {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(200, time)
+      osc.frequency.exponentialRampToValueAtTime(100, time + 0.1)
+      gain.gain.setValueAtTime(0.15, time)
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1)
+      osc.connect(gain)
+      gain.connect(dryGain)
+      osc.start(time)
+      osc.stop(time + 0.12)
     }
 
     let step = 0
     const interval = setInterval(() => {
-      if (!audioCtxRef.current || 
-          ctx.state === 'closed') return
+      if (!audioCtxRef.current || ctx.state === 'closed') return
       const now = ctx.currentTime
-      const currentStep = step % 16
+      const currentStep = step % 32
 
-      const freq = melody[currentStep]
-      if (rng() > 0.25) {
+      if (rhythmPattern && rhythmPattern[currentStep]) {
+        const freq = melody[currentStep]
         playMelodyNote(freq, now)
       }
 
-      if (currentStep === 0 || currentStep === 8) {
+      if (currentStep === 0 || currentStep === 16) {
         playBass(now)
       }
 
-      if (config.hasDrum && 
-          config.drumPattern[currentStep] === 1) {
+      if (config.hasDrum && (step % 16) < 16 && 
+          config.drumPattern[(step % 16)] === 1) {
         playDrum(now)
+      }
+
+      if (danceStyle === 'robot' && currentStep % 8 === 0) {
+        playArpeggio(now)
+      }
+
+      if (danceStyle === 'breakdance' && step % 16 === 6) {
+        playScratch(now)
       }
 
       step++
@@ -206,7 +334,7 @@ export default function MusicEngine({
         audioCtxRef.current.close()
       }
     }
-  }, [danceParams, danceStyle, isPlaying])
+  }, [danceParams, danceStyle, isPlaying, company, startDate, endDate])
 
   return null
 }

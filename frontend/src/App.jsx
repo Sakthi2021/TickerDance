@@ -98,7 +98,7 @@ export default function App() {
         <div style={{ height: 1, background: '#1e1e2e', margin: '24px 0' }} />
         <p style={{ color: '#555', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>CHOREOGRAPHY SEED</p>
         <p style={{ color: '#00ff88', fontFamily: "'Orbitron', monospace", fontSize: 14, margin: 0 }}>{generateSeed(company, startDate, endDate, danceStyle)}</p>
-        <p style={{ color: '#444', fontSize: 10, margin: 0 }}>Same inputs always generate same dance</p>
+        <p style={{ color: '#444', fontSize: 10, margin: 0 }}>Dance speed and music adapt to market volatility</p>
       </div>
     )
   }
@@ -144,7 +144,7 @@ export default function App() {
           />
         </div>
 <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
-           <Stage danceParams={danceParams} danceStyle={danceStyle} color="#00ff88" isPlaying={!!danceParams && !isMuted} isMuted={isMuted} onMute={setIsMuted} />
+           <Stage danceParams={danceParams} danceStyle={danceStyle} color="#00ff88" isPlaying={!!danceParams && !isMuted} isMuted={isMuted} onMute={setIsMuted} company={company} startDate={startDate} endDate={endDate} />
          </div>
         <div style={{ width: '100%', overflowY: 'auto' }}>
           <div style={{ background: '#111118', border: '1px solid #1e1e2e', borderRadius: 12, padding: 24 }}>

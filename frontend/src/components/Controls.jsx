@@ -69,63 +69,64 @@ export default function Controls({
           </select>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-          <div>
-            <label style={{
-              display: 'block',
-              marginBottom: 8,
-              color: '#666',
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: 'uppercase'
-            }}>Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                background: '#0a0a0f',
-                border: '1px solid #1e1e2e',
-                borderRadius: 8,
-                color: '#ccc',
-                fontFamily: 'inherit',
-                fontSize: 14,
-                outline: 'none'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#00ff88'}
-              onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
-            />
-          </div>
-          <div>
-            <label style={{
-              display: 'block',
-              marginBottom: 8,
-              color: '#666',
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: 'uppercase'
-            }}>End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                background: '#0a0a0f',
-                border: '1px solid #1e1e2e',
-                borderRadius: 8,
-                color: '#ccc',
-                fontFamily: 'inherit',
-                fontSize: 14,
-                outline: 'none'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#00ff88'}
-              onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
-            />
-          </div>
+        <div style={{ width: '100%', marginBottom: '12px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '6px',
+            color: '#666',
+            fontSize: '10px',
+            letterSpacing: '2px',
+            textTransform: 'uppercase'
+          }}>Start Date</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '10px 12px',
+              background: '#0a0a0f',
+              border: '1px solid #1e1e2e',
+              borderRadius: '6px',
+              color: '#ccc',
+              fontFamily: 'inherit',
+              fontSize: '12px',
+              outline: 'none'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#00ff88'}
+            onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
+          />
+        </div>
+
+        <div style={{ width: '100%', marginBottom: '16px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '6px',
+            color: '#666',
+            fontSize: '10px',
+            letterSpacing: '2px',
+            textTransform: 'uppercase'
+          }}>End Date</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '10px 12px',
+              background: '#0a0a0f',
+              border: '1px solid #1e1e2e',
+              borderRadius: '6px',
+              color: '#ccc',
+              fontFamily: 'inherit',
+              fontSize: '12px',
+              outline: 'none'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#00ff88'}
+            onBlur={(e) => e.target.style.borderColor = '#1e1e2e'}
+          />
         </div>
 
         <div style={{ marginBottom: 16 }}>
