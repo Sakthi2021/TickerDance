@@ -1,6 +1,5 @@
 import os
 from openai import OpenAI
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,15 +7,11 @@ load_dotenv()
 FOUNDRY_ENDPOINT = os.getenv("FOUNDRY_ENDPOINT")
 FOUNDRY_MODEL = os.getenv("FOUNDRY_MODEL_DEPLOYMENT", "gpt-oss-120b")
 
-token_provider = get_bearer_token_provider(
-    DefaultAzureCredential(), "https://ai.azure.com/.default"
-)
 
 client = OpenAI(
     base_url=FOUNDRY_ENDPOINT,
-    api_key=token_provider,
+    api_key=os.getenv("FOUNDRY_API_KEY"),
 )
-
 
 def get_market_story(company_name: str, start_date: str, end_date: str, dna_stats: dict) -> str:
     """
