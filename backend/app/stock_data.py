@@ -1,5 +1,3 @@
-import hashlib
-
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -49,18 +47,6 @@ COMPANY_TICKER_MAP = {
 }
 
 
-def _seed_from_dates(start_date: str, end_date: str) -> int:
-    date_key = f"{start_date}:{end_date}"
-    digest = hashlib.sha256(date_key.encode("utf-8")).hexdigest()
-    return int(digest[:16], 16)
-
-
-def _normalize(value: float, min_value: float, max_value: float) -> float:
-    if max_value == min_value:
-        return 0.0
-    return float(np.clip((value - min_value) / (max_value - min_value), 0.0, 1.0))
-
-
 def analyze_stock_data(
     company_name: str,
     start_date: str,
@@ -85,8 +71,8 @@ def analyze_stock_data(
 
     returns = close.pct_change().dropna()
     raw_volatility = float(returns.std())
-    min_vol = 0.001
-    max_vol = 0.05
+    min_vol = 0.0005
+    max_vol = 0.08
     volatility = float(np.clip(
       (raw_volatility - min_vol) / (max_vol - min_vol),
       0.0, 1.0
@@ -102,14 +88,11 @@ def analyze_stock_data(
     if trend_direction == 0.0:
         trend_direction = 1.0 if float(returns.mean()) >= 0 else -1.0
 
-    rng = np.random.default_rng(_seed_from_dates(start_date, end_date))
-    noise = rng.normal(0, 0.05, size=4)
-
     dance_parameters = {
-        "volatility": float(np.clip(volatility + noise[0], 0.0, 1.0)),
-        "momentum": float(np.clip(momentum + noise[1], -1.0, 1.0)),
-        "volume_intensity": float(np.clip(volume_intensity + noise[2], 0.0, 1.0)),
-        "trend_direction": float(np.clip(trend_direction + noise[3], -1.0, 1.0)),
+        "volatility": float(np.clip(volatility, 0.0, 1.0)),
+        "momentum": float(np.clip(momentum, -1.0, 1.0)),
+        "volume_intensity": float(np.clip(volume_intensity, 0.0, 1.0)),
+        "trend_direction": float(np.clip(trend_direction, -1.0, 1.0)),
         "price_range_normalized": float(np.clip(price_range_normalized, 0.0, 1.0)),
     }
 
@@ -130,7 +113,18 @@ def _generate_synthetic_data(ticker: str, start_date: str, end_date: str) -> pd.
         date_range = pd.bdate_range(start=start_date, periods=1)
 
     base_price = 100 + (abs(hash(ticker)) % 400)  # 100-500 range, ticker-dependent
-    returns = rng.normal(loc=0.0005, scale=0.015, size=n)
+    
+    # Determine volatility scale based on ticker
+    high_vol_tickers = {"TSLA", "NVDA", "GME", "AMC", "COIN", "RIVN", "PLTR"}
+    high_sigma_tickers = {"ZOMATO.NS", "PAYTM.NS", "ADANIENT.NS", "YESBANK.NS"}
+    
+    if ticker in high_vol_tickers:
+        returns = rng.normal(loc=0.0002, scale=0.04, size=n)  # High volatility
+    elif ticker in high_sigma_tickers:
+        returns = rng.normal(loc=0.0002, scale=0.025, size=n)  # Medium-high volatility
+    else:
+        returns = rng.normal(loc=0.0005, scale=0.015, size=n)  # Normal/stable
+    
     prices = base_price * np.cumprod(1 + returns)
 
     close = prices
