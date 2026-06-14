@@ -49,6 +49,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [showGlossary, setShowGlossary] = useState(false)
+  const [marketStory, setMarketStory] = useState('')
+  const [storyLoading, setStoryLoading] = useState(false)
 
   const generateSeed = (company, start, end, style) => {
     let hash = 0
@@ -59,26 +61,47 @@ export default function App() {
     return '#' + (hash >>> 0).toString(16).slice(-8).toUpperCase().padStart(8, '0')
   }
 
+
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setDanceParams(null)
-    try {
-      const response = await axios.post('http://localhost:8000/api/analyze', {
-        company_name: company,
-        start_date: startDate,
-        end_date: endDate,
-        dance_style: danceStyle,
-      })
-      setDanceParams(response.data.dance_parameters)
-      setTimeout(() => {
-        setIsLoading(false)
-      }, 1500)
-    } catch (error) {
-      console.error('Failed to fetch dance parameters', error)
+  e.preventDefault()
+  setIsLoading(true)
+  setDanceParams(null)
+  setMarketStory('')
+  try {
+    const response = await axios.post('http://localhost:8000/api/analyze', {
+      company_name: company,
+      start_date: startDate,
+      end_date: endDate,
+      dance_style: danceStyle,
+    })
+    setDanceParams(response.data.dance_parameters)
+    setTimeout(() => {
       setIsLoading(false)
+    }, 1500)
+
+    // Fetch AI market story (Foundry IQ)
+    setStoryLoading(true)
+    try {
+      const storyRes = await axios.get('http://localhost:8000/api/market-story', {
+        params: {
+          company: company,
+          start_date: startDate,
+          end_date: endDate,
+          dance_style: danceStyle,
+        }
+      })
+      setMarketStory(storyRes.data.story)
+    } catch (storyErr) {
+      console.error('Failed to fetch market story', storyErr)
+    } finally {
+      setStoryLoading(false)
     }
+
+  } catch (error) {
+    console.error('Failed to fetch dance parameters', error)
+    setIsLoading(false)
   }
+}
 
   const renderDNA = (params) => {
     if (!params) return null
@@ -123,6 +146,28 @@ export default function App() {
               </div>
             </div>
           ))}
+        </div>
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
+          <p style={{
+            color: C.accent,
+            fontFamily: "'Orbitron', monospace",
+            fontSize: 11,
+            letterSpacing: 4,
+            marginBottom: 8,
+            textTransform: 'uppercase'
+          }}>AI MARKET STORY</p>
+
+          {storyLoading ? (
+            <p style={{ color: C.subText, fontSize: 11 }}>Generating insight...</p>
+            ) : marketStory ? (
+              <p style={{ color: C.subText, fontSize: 11, lineHeight: 1.6 }}>
+              {marketStory}
+              </p>
+              ) : (
+                <p style={{ color: C.subText, fontSize: 11, opacity: 0.5 }}>
+                  Generate a dance to see AI market commentary
+                </p>
+          )}
         </div>
 
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
