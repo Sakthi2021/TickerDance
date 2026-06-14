@@ -9,6 +9,10 @@
 
 TickerDance transforms cold stock market data into dynamic 3D dance animations. This creates a fun, engaging way to visualize and understand market behavior. Users select from 22 supported stocks across US and Indian markets, choose date ranges, and pick from 5 dance styles (hip-hop, ballet, classical, robot, breakdance). The backend analyzes stock metrics (volatility, momentum, volume, trend) via yfinance, and the frontend renders interactive Three.js dancers with procedurally generated music using the Web Audio API. Dance speed and music tempo are driven by market volatility - high volatility stocks dance faster and more intensely than stable stocks. Each analysis produces a reproducible choreography seed ensuring identical inputs always generate the same BPM and musical pattern.
 
+## Demo Video
+
+- Watch the demo video: https://youtu.be/n5WMMKENU6c
+
 ## Tech Stack
 
 - **Frontend:** React + Vite, @react-three/fiber, @react-three/drei, Three.js, Tailwind CSS, Axios
