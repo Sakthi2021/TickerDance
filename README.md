@@ -2,19 +2,21 @@
 
 ## Project Overview
 
-TickerDance transforms real stock market data into dynamic 3D dance animations. Users select from 22 supported stocks across US and Indian markets, choose date ranges, and pick from 5 dance styles (hip-hop, ballet, classical, robot, breakdance). The backend analyzes stock metrics (volatility, momentum, volume, trend) via yfinance, and the frontend renders interactive Three.js dancers with procedurally generated music using the Web Audio API. Dance speed and music tempo are driven by market volatility — high volatility stocks dance faster and more intensely than stable stocks. Each analysis produces a reproducible choreography seed ensuring identical inputs always generate the same BPM and musical pattern.
+TickerDance transforms cold stock market data into dynamic 3D dance animations. This creates a fun, engaging way to visualize and understand market behavior. Users select from 22 supported stocks across US and Indian markets, choose date ranges, and pick from 5 dance styles (hip-hop, ballet, classical, robot, breakdance). The backend analyzes stock metrics (volatility, momentum, volume, trend) via yfinance, and the frontend renders interactive Three.js dancers with procedurally generated music using the Web Audio API. Dance speed and music tempo are driven by market volatility - high volatility stocks dance faster and more intensely than stable stocks. Each analysis produces a reproducible choreography seed ensuring identical inputs always generate the same BPM and musical pattern.
 
 ## Tech Stack
 
-- **Frontend:** React + Vite, @react-three/fiber, @react-three/drei, Three.js, Axios
-- **Backend:** Python FastAPI, yfinance, pandas, numpy, pydantic, python-dotenv, uvicorn
+- **Frontend:** React + Vite, @react-three/fiber, @react-three/drei, Three.js, Tailwind CSS, Axios
+- **Backend:** Python FastAPI, yfinance, pandas, numpy, pydantic, python-dotenv, uvicorn, openai
+- **MCP Server:** Python MCP SDK, pydantic, python-dotenv, yfinance
+- **Azure AI Foundry:** OpenAI SDK with gpt-oss-120b model deployment
 
 ## Folder Structure
 
 ```
 TickerDance/
 ├── .vscode/
-│   └── mcp.json                # GitHub Copilot MCP configuration
+│   └── mcp.json                # VS Code MCP configuration
 ├── frontend/
 │   ├── public/
 │   │   ├── dancer.fbx          # Hip-hop 3D model
@@ -36,16 +38,16 @@ TickerDance/
 │   └── vite.config.js
 ├── backend/
 │   ├── app/
-│   │   ├── main.py             # FastAPI server with /api/analyze endpoint
+│   │   ├── main.py             # FastAPI server with /api/analyze and /api/market-story endpoints
 │   │   ├── stock_data.py       # Stock data analysis with dance parameter calculation
+│   │   ├── iq_service.py       # Azure AI Foundry integration for market storytelling
 │   │   ├── models.py           # Pydantic request/response models
 │   │   └── __init__.py
 │   ├── requirements.txt
 │   └── .env
 ├── mcp_server/
-│   ├── server.py               # MCP server with analyze_stock_data tool
+│   ├── server.py               # MCP server with 5 stock analysis tools
 │   └── requirements.txt
-configuration
 └── README.md
 ```
 
@@ -58,27 +60,27 @@ configuration
 - **Controls:** Mute/unmute audio, pause/resume animation, shareable choreography seeds
 - **Dancer Color:** Green for bullish momentum, orange for bearish momentum, blue for sideways movement — color changes dynamically based on real market trend direction
 - **Dance DNA Panel:** Live metric bars showing volatility, momentum, volume, trend, energy and tempo with market direction badge (BULLISH, BEARISH, SIDEWAYS) and unique choreography seed
+- **AI Market Story:** Powered by Azure AI Foundry, generates a short narrative commentary connecting stock data to dance behavior (e.g., "Tesla has ELECTRIC market behavior with BPM of 115. Dancer will appear GREEN (BULLISH)")
 
 ## Installation & Setup
-### MCP Server (Optional)
+
+### MCP Server
 
 The MCP server enables programmatic access to TickerDance stock analysis:
 
 1. Create a virtual environment and install dependencies:
-    ```bash
-    cd mcp_server
-    python -m venv venv
-    .\venv\Scripts\activate    # Windows
-    # or: source venv/bin/activate  # macOS/Linux
-    pip install -r requirements.txt
-    ```
+   ```bash
+   cd mcp_server
+   python -m venv venv
+   .\venv\Scripts\activate    # Windows
+   # or: source venv/bin/activate  # macOS/Linux
+   pip install -r requirements.txt
+   ```
 
-3. Run the MCP server:
-    ```bash
-    python mcp_server/server.py
-    ```
-
-Or configure directly in your MCP client by setting the environment variable to point to `ticker.json`.
+2. Run the MCP server:
+   ```bash
+   python mcp_server/server.py
+   ```
 
 ### 1. Backend Setup
 
@@ -107,7 +109,14 @@ Or configure directly in your MCP client by setting the environment variable to 
    pip install -r requirements.txt
    ```
 
-5. Run the backend server with Uvicorn:
+5. Set up environment variables in `.env`:
+    ```bash
+    FOUNDRY_ENDPOINT=https://your-foundry-instance.openai.azure.com/
+    FOUNDRY_MODEL_DEPLOYMENT=gpt-oss-120b
+    FOUNDRY_API_KEY=your-api-key-here
+    ```
+
+6. Run the backend server with Uvicorn:
    ```bash
    uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
    ```
@@ -115,23 +124,23 @@ Or configure directly in your MCP client by setting the environment variable to 
 ### 2. Frontend Setup
 
 1. Open a second terminal and navigate to the frontend folder:
-    ```bash
-    cd frontend
-    ```
+   ```bash
+   cd frontend
+   ```
 
 2. Install frontend dependencies:
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 3. Start the Vite development server:
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
 4. Open the app in the browser using the local URL Vite displays, usually `http://localhost:5173`.
 
-## API Endpoint
+## API Endpoints
 
 ### POST `/api/analyze`
 
@@ -149,7 +158,7 @@ Response:
 ```json
 {
   "company_name": "Infosys",
-  "ticker": "INFY",
+  "ticker": "INFY.NS",
   "dance_parameters": {
     "volatility": 0.25,
     "momentum": 0.15,
@@ -159,6 +168,32 @@ Response:
   }
 }
 ```
+
+### GET `/api/market-story`
+
+Generates an AI-powered market commentary based on the analyzed stock data.
+
+Request parameters (query string):
+```
+company=Infosys&start_date=2024-01-01&end_date=2024-06-01&dance_style=hip-hop
+```
+
+Response:
+```json
+{
+  "story": "Infosys shows steady technical movement with moderate volatility at 48 BPM. The dancer glides with calm green confidence, reflecting the company's consistent upward trajectory in the IT sector."
+}
+```
+
+## Environment Variables
+
+Create `backend/.env` with the following variables:
+
+| Variable | Description |
+|----------|-------------|
+| `FOUNDRY_ENDPOINT` | Azure AI Foundry endpoint URL (e.g., `https://your-instance.openai.azure.com/`) |
+| `FOUNDRY_MODEL_DEPLOYMENT` | Model deployment name (default: `gpt-oss-120b`) |
+| `FOUNDRY_API_KEY` | API key for Azure AI Foundry authentication |
 
 ## MCP Server
 
@@ -340,7 +375,7 @@ Scans the last 60 days of stock data and finds the most volatile and interesting
 
 #### get_company_profile
 
-Returns detailed profile for any supported company including sector, country, market category, expected BPM range, dance personality trait and a fun market fact.
+Returns detailed profile information for a company supported in TickerDance including sector, country, market category and dance personality traits.
 
 **Input Parameters**
 
@@ -382,8 +417,8 @@ Compares two companies side by side and determines which one has a more energeti
 |-----------|------|----------|-------------|
 | company_a | string | Yes | First company name |
 | company_b | string | Yes | Second company name |
-| start_date | string | Yes | Start date in YYYY-MM-DD format |
-| end_date | string | Yes | End date in YYYY-MM-DD format |
+| start_date | string | Yes | Start date YYYY-MM-DD |
+| end_date | string | Yes | End date YYYY-MM-DD |
 
 **Example Copilot Query**
 
@@ -421,32 +456,6 @@ Compares two companies side by side and determines which one has a more energeti
 
 **What makes this tool unique:** It's the only tool that makes two backend calls simultaneously and computes a relative energy score (70% volatility + 30% volume) to declare a winner. It produces dramatic contrasts — like Coca-Cola's 48 BPM "sleepy ballet" against GameStop's 170 BPM "frantic breakdance" — making it ideal for presentations and demos.
 
-### Setup
-
-1. Create a virtual environment and install dependencies:
-    ```bash
-    cd mcp_server
-    python -m venv venv
-    .\venv\Scripts\activate    # Windows
-    # or: source venv/bin/activate  # macOS/Linux
-    pip install -r requirements.txt
-    ```
-
-2. Start the MCP server:
-    ```bash
-    python mcp_server/server.py
-    ```
-
-3. Make sure the FastAPI backend is running before using MCP tools:
-    ```bash
-    cd backend
-    uvicorn app.main:app --reload
-    ```
-
-### Note
-
-MCP tools operate independently from the browser frontend. When you click **Generate Dance** in the browser, the frontend calls the backend directly. MCP tools are exclusively for AI agent integration — enabling GitHub Copilot to query and interpret TickerDance data through natural language.
-
 ## Notes
 
 - Make sure the backend is running before loading stock data in the frontend.
@@ -471,6 +480,4 @@ MCP tools operate independently from the browser frontend. When you click **Gene
 | Robot | 3D Mixamo FBX | Medium-slow (0.5x base) | Electronic arpeggios |
 | Breakdance | 3D Mixamo FBX | Very Fast (1.5x base) | High energy scratches |
 
-Note: All speeds are further multiplied by market 
-volatility — high volatility stocks dance faster 
-regardless of style.
+Note: All speeds are further multiplied by market volatility — high volatility stocks dance faster regardless of style.
