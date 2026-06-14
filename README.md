@@ -11,7 +11,7 @@ TickerDance transforms cold stock market data into dynamic 3D dance animations. 
 
 ## Demo Video
 
-- Watch the demo video: https://youtu.be/JY5cDyspxL8
+- Watch the demo video: https://youtu.be/n5WMMKENU6c
 
 ## Tech Stack
 
